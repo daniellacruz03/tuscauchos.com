@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#C00000"/>
+  <!-- Franja superior oscura -->
+  <rect x="0" y="0" width="160" height="12" rx="4" fill="#8B0000"/>
+  <rect x="0" y="8" width="160" height="4" fill="#8B0000"/>
+  <text x="80" y="21" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="16" fill="white" text-anchor="middle" letter-spacing="2">FUJISAKI</text>
+  <text x="80" y="36" font-family="Arial, sans-serif" font-size="8" fill="#FFB3B3" text-anchor="middle" letter-spacing="2">HEAVY DUTY TIRES</text>
+</svg>

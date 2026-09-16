@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 44" width="200" height="44">
+  <rect width="200" height="44" rx="6" fill="#0284C7"/>
+  <path d="M 25 12 Q 100 4 175 12" stroke="#F97316" stroke-width="4" fill="none"/>
+  <text x="100" y="32" font-family="'Chakra Petch', 'Arial Black', sans-serif" font-size="23" font-weight="900" font-style="italic" fill="#FFFFFF" text-anchor="middle" letter-spacing="3">DURUN</text>
+</svg>

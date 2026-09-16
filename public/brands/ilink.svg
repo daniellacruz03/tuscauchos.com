@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#C62828"/>
+  <rect x="0" y="0" width="6" height="44" fill="#FF1744"/>
+  <!-- i en blanco brillante -->
+  <text x="20" y="30" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="26" fill="white" text-anchor="middle">i</text>
+  <text x="95" y="23" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="20" fill="white" text-anchor="middle" letter-spacing="2">LINK</text>
+  <text x="95" y="38" font-family="Arial, sans-serif" font-size="8" fill="#FFCDD2" text-anchor="middle" letter-spacing="1.5">ADVANCED TIRE TECH</text>
+</svg>

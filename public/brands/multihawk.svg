@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#D10000"/>
+  <!-- M estilizada con alas -->
+  <text x="18" y="30" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="26" fill="white">M</text>
+  <text x="44" y="21" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="14" fill="white" letter-spacing="1">ULTIHAWK</text>
+  <text x="44" y="35" font-family="Arial, sans-serif" font-size="8" fill="#FFB3B3" letter-spacing="1.5">PERFORMANCE TIRES</text>
+</svg>

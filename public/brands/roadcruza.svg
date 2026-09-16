@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#CC1100"/>
+  <!-- Franja diagonal decorativa -->
+  <polygon points="0,0 30,0 0,44" fill="#AA0000" opacity="0.5"/>
+  <text x="82" y="19" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="15" fill="white" text-anchor="middle" letter-spacing="2">ROADCRUZA</text>
+  <text x="82" y="35" font-family="Arial, sans-serif" font-size="8" fill="#FFB3B3" text-anchor="middle" letter-spacing="1.5">HIGH PERFORMANCE</text>
+</svg>

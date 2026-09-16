@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#E65100"/>
+  <rect x="0" y="0" width="160" height="6" rx="4" fill="#FF6D00"/>
+  <rect x="0" y="38" width="160" height="6" fill="#FF6D00"/>
+  <text x="80" y="24" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="22" fill="white" text-anchor="middle" letter-spacing="2">MAZZINI</text>
+  <text x="80" y="36" font-family="Arial, sans-serif" font-size="7.5" fill="#FFE0B2" text-anchor="middle" letter-spacing="1.5">SPORT PERFORMANCE</text>
+</svg>

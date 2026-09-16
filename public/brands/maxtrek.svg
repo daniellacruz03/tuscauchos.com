@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#1B2838"/>
+  <!-- Hexágono decorativo -->
+  <polygon points="16,10 24,10 28,17 24,24 16,24 12,17" fill="#E53935" opacity="0.9"/>
+  <text x="88" y="20" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="14" fill="white" text-anchor="middle" letter-spacing="1.5">MAXTREK</text>
+  <text x="88" y="35" font-family="Arial, sans-serif" font-size="8" fill="#7B9EC0" text-anchor="middle" letter-spacing="1.5">SUV &amp; 4×4 TIRES</text>
+</svg>

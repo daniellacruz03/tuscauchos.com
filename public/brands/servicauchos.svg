@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 48" width="140" height="48">
+  <rect width="140" height="48" rx="8" fill="#0E1218"/>
+  <defs>
+    <linearGradient id="lg2" x1="0" y1="0" x2="140" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#D90429" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#0E1218" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="140" height="48" rx="8" fill="url(#lg2)"/>
+  <!-- Borde rojo -->
+  <rect width="140" height="48" rx="8" fill="none" stroke="#D90429" stroke-width="1.2"/>
+  <!-- Ícono de llanta pequeño -->
+  <circle cx="18" cy="24" r="9" fill="none" stroke="#D90429" stroke-width="2"/>
+  <circle cx="18" cy="24" r="4" fill="#D90429"/>
+  <!-- SERVICAUCHOS -->
+  <text x="82" y="19" font-family="Arial Black, sans-serif" font-weight="900" font-size="9.5" fill="white" text-anchor="middle" letter-spacing="1">SERVICAUCHOS</text>
+  <!-- LIBERTADOR en rojo -->
+  <text x="82" y="32" font-family="Chakra Petch, Arial Black, sans-serif" font-weight="700" font-size="11" fill="#D90429" text-anchor="middle" letter-spacing="2">LIBERTADOR</text>
+  <text x="82" y="43" font-family="Arial, sans-serif" font-size="6.5" fill="#64748B" text-anchor="middle" letter-spacing="0.8">TALLER DE CAUCHOS</text>
+</svg>

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <!-- Fondo negro superior, gris inferior -->
+  <rect width="160" height="44" rx="4" fill="#1A1A1A"/>
+  <!-- Franja azul acento izquierda -->
+  <rect x="0" y="0" width="6" height="44" rx="4" fill="#003DA6"/>
+  <!-- KUMHO grande -->
+  <text x="88" y="20" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="18" fill="white" text-anchor="middle" letter-spacing="2">KUMHO</text>
+  <!-- TIRE pequeño -->
+  <text x="88" y="35" font-family="Arial, sans-serif" font-size="10" fill="#AAAAAA" text-anchor="middle" letter-spacing="4">TIRE</text>
+</svg>

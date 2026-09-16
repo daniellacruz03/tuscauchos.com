@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 48" width="140" height="48">
+  <!-- Fondo oscuro premium -->
+  <rect width="140" height="48" rx="8" fill="#0E1218"/>
+  <rect width="140" height="48" rx="8" fill="url(#lg)" opacity="0.6"/>
+  <defs>
+    <linearGradient id="lg" x1="0" y1="0" x2="140" y2="48" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1D4ED8" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#0E1218" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <!-- Borde azul -->
+  <rect width="140" height="48" rx="8" fill="none" stroke="#2563EB" stroke-width="1.2"/>
+  <!-- LAMO en azul grande -->
+  <text x="70" y="22" font-family="Chakra Petch, Arial Black, sans-serif" font-weight="900" font-size="18" fill="#2563EB" text-anchor="middle" letter-spacing="4">LAMO</text>
+  <!-- Subtítulo pequeño -->
+  <text x="70" y="34" font-family="Arial, sans-serif" font-size="7" fill="#94A3B8" text-anchor="middle" letter-spacing="1">AUTOPERIQUITOS Y CAUCHOS</text>
+  <!-- Punto rojo decorativo -->
+  <circle cx="70" cy="43" r="2" fill="#D90429"/>
+</svg>

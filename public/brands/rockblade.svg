@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#1C5C2E"/>
+  <!-- Hoja / blade estilizado -->
+  <polygon points="12,22 22,10 22,34" fill="#4CAF50"/>
+  <!-- ROCKBLADE -->
+  <text x="86" y="20" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="15" fill="white" text-anchor="middle" letter-spacing="1.5">ROCKBLADE</text>
+  <text x="86" y="35" font-family="Arial, sans-serif" font-size="8" fill="#A5D6A7" text-anchor="middle" letter-spacing="1.5">ALL TERRAIN TIRES</text>
+</svg>

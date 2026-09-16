@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#111111"/>
+  <!-- Franja roja inferior como en el logo original -->
+  <rect x="0" y="32" width="160" height="12" rx="0" fill="#CC0000"/>
+  <rect x="0" y="32" width="160" height="12" fill="#CC0000"/>
+  <!-- S estilizada en rojo -->
+  <text x="14" y="27" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="20" fill="#CC0000">S</text>
+  <text x="32" y="27" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="15" fill="white" letter-spacing="1">PORTRAK</text>
+  <text x="80" y="41" font-family="Arial, sans-serif" font-size="7.5" fill="white" text-anchor="middle" letter-spacing="1.5">4×4 PERFORMANCE</text>
+</svg>

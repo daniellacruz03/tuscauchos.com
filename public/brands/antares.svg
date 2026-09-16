@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 44" width="160" height="44">
+  <rect width="160" height="44" rx="4" fill="#111111"/>
+  <!-- Alas estilizadas (triángulos) -->
+  <polygon points="8,22 20,12 20,32" fill="#C0C0C0"/>
+  <polygon points="152,22 140,12 140,32" fill="#C0C0C0"/>
+  <!-- ANTARES centrado -->
+  <text x="80" y="20" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="16" fill="white" text-anchor="middle" letter-spacing="3">ANTARES</text>
+  <text x="80" y="35" font-family="Arial, sans-serif" font-size="7.5" fill="#888888" text-anchor="middle" letter-spacing="2.5">TIRES CORPORATION</text>
+</svg>
