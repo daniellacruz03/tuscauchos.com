@@ -1579,17 +1579,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const searchNorm = normTireString(searchTermRaw);
         const searchTokens = searchNorm.split(/\s+/).filter(Boolean);
 
-        // Modo prioridad de medida (vehicleMeasure): muestra todos los Cauchos
-        // pero los que coinciden con la medida van primero.
+        // Modo prioridad de medida (vehicleMeasure): solo aplica a Cauchos
         const vmRaw = state.vehicleMeasure || '';
         const vmNorm = normTireString(vmRaw);
         const vmTokens = vmNorm.split(/\s+/).filter(Boolean);
-        const vehicleMeasureActive = vmTokens.length > 0;
+        const vehicleMeasureActive = (state.category === '' || state.category === 'Cauchos') && vmTokens.length > 0;
 
-        // Categorías donde la medida/rin del vehículo tiene sentido como filtro estricto
-        const isTireLikeCategory = !state.category
-            || state.category === 'Cauchos'
-            || state.category === 'Rines';
+        const isTireCategory = !state.category || state.category === 'Cauchos';
 
         const filtered = products.filter(p => {
             // Ocultar productos agotados
@@ -1600,13 +1596,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!state.categories.includes(p.category)) return false;
             }
 
-            // Filtros de medida/rin: solo aplican en Cauchos y Rines
-            if (isTireLikeCategory) {
-                // Al filtrar por Rin, solo mostrar cauchos y rines de ese rin
-                if (state.rim) {
-                    if (p.category !== 'Cauchos' && p.category !== 'Rines') return false;
-                    if (p.rim.toString() !== state.rim) return false;
-                }
+            // Filtro por Rin: aplica a Cauchos y Rines
+            if (state.rim) {
+                if (p.category !== 'Cauchos' && p.category !== 'Rines') return false;
+                if (p.rim.toString() !== state.rim) return false;
+            }
+
+            // Filtros de ancho y perfil: SOLO aplican a Cauchos
+            if (isTireCategory) {
                 if (state.width && p.width.toString() !== state.width) return false;
                 if (state.profile && p.profile.toString() !== state.profile) return false;
             }
@@ -1619,23 +1616,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!matches) return false;
             }
 
-            // Búsqueda por texto: en categorías no-Cauchos/Rines, la medida del vehículo
-            // se ignora como filtro estricto — se muestra todo el stock de esa categoría.
-            // En modo vehicleMeasure NO filtramos por search (sólo ordenamos).
-            if (!vehicleMeasureActive && searchTokens.length > 0 && isTireLikeCategory) {
-                const itemHaystack = normTireString(
-                    `${p.rawCol0 || ''} ${p.brand} ${p.model} ${p.width} ${p.profile} ${p.rim} ${p.category} ${p.terrain} ${p.width}/${p.profile} R${p.rim}`
-                );
-                const allTokensMatch = searchTokens.every(tok => itemHaystack.includes(tok));
-                if (!allTokensMatch) return false;
-            } else if (!vehicleMeasureActive && searchTokens.length > 0 && !isTireLikeCategory) {
-                const looksLikeTireMeasure = /\d{3}[\/.]\d{2,3}/.test(searchTermRaw) || /r\d{2}/i.test(searchTermRaw);
-                if (!looksLikeTireMeasure) {
+            // Búsqueda por texto
+            if (!vehicleMeasureActive && searchTokens.length > 0) {
+                if (p.category === 'Cauchos') {
                     const itemHaystack = normTireString(
-                        `${p.rawCol0 || ''} ${p.brand} ${p.model} ${p.category}`
+                        `${p.rawCol0 || ''} ${p.brand} ${p.model} ${p.width} ${p.profile} ${p.rim} ${p.category} ${p.terrain} ${p.width}/${p.profile} R${p.rim}`
                     );
                     const allTokensMatch = searchTokens.every(tok => itemHaystack.includes(tok));
                     if (!allTokensMatch) return false;
+                } else if (p.category === 'Rines') {
+                    const itemHaystack = normTireString(
+                        `${p.rawCol0 || ''} ${p.brand} ${p.model} ${p.rim} R${p.rim} ${p.category}`
+                    );
+                    const allTokensMatch = searchTokens.every(tok => itemHaystack.includes(tok));
+                    if (!allTokensMatch) return false;
+                } else {
+                    const looksLikeTireMeasure = /\d{3}[\/.]\d{2,3}/.test(searchTermRaw) || /r\d{2}/i.test(searchTermRaw);
+                    if (!looksLikeTireMeasure) {
+                        const itemHaystack = normTireString(
+                            `${p.rawCol0 || ''} ${p.brand} ${p.model} ${p.category}`
+                        );
+                        const allTokensMatch = searchTokens.every(tok => itemHaystack.includes(tok));
+                        if (!allTokensMatch) return false;
+                    }
                 }
             }
 
@@ -1793,11 +1796,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 card.classList.add('active');
                 selectedCategory = cat;
 
-                const hasTiresOrRims = cat === 'Cauchos' || cat === 'Rines';
+                const isCauchos = cat === 'Cauchos';
                 if (btnWizardToStep2) {
                     const spanEl = btnWizardToStep2.querySelector('span');
                     if (spanEl) {
-                        spanEl.textContent = hasTiresOrRims ? 'Siguiente: Elegir Vehículo' : 'Ver Catálogo Filtrado';
+                        if (isCauchos) {
+                            spanEl.textContent = 'Siguiente: Elegir Vehículo';
+                        } else if (cat === 'Rines') {
+                            spanEl.textContent = 'Ver Catálogo Filtrado de Rines';
+                        } else {
+                            spanEl.textContent = 'Ver Catálogo Filtrado';
+                        }
                     }
                 }
             });
@@ -1844,23 +1853,50 @@ document.addEventListener('DOMContentLoaded', () => {
             state.categories = [];
             state.rim = '';
             state.search = '';
+            state.width = '';
+            state.profile = '';
+            state.terrain = '';
+            state.vehicleBrand = '';
+            state.vehicleModel = '';
+            state.vehicleMeasure = '';
+            if (activeVehicleBar) activeVehicleBar.classList.add('hidden');
             launchCatalog();
         });
     }
 
     if (btnWizardToStep2) {
         btnWizardToStep2.addEventListener('click', () => {
-            const hasTiresOrRims = selectedCategory === 'Cauchos' || selectedCategory === 'Rines';
-            if (hasTiresOrRims) {
+            if (selectedCategory === 'Cauchos') {
                 updateStepper(2);
             } else {
-                // Categoría sin paso de vehículo → ir directo al catálogo
+                // Rines y demás categorías van directo al catálogo filtrado
                 state.category = selectedCategory;
                 state.categories = [selectedCategory];
                 state.rim = '';
                 state.search = '';
-                enterCatalogMode();
-                applyFilters();
+                state.width = '';
+                state.profile = '';
+                state.terrain = '';
+                state.vehicleBrand = '';
+                state.vehicleModel = '';
+                state.vehicleMeasure = '';
+                if (activeVehicleBar) activeVehicleBar.classList.add('hidden');
+
+                if (categoryList) {
+                    categoryList.querySelectorAll('.filter-item').forEach(item => {
+                        item.classList.toggle('active', item.dataset.value === selectedCategory);
+                    });
+                }
+                const topNavLinks = document.querySelectorAll('.nav-link.filter-item');
+                topNavLinks.forEach(link => {
+                    link.classList.toggle('active', link.dataset.value === selectedCategory);
+                });
+                const mfbChips = document.querySelectorAll('.mfb-chip[data-filter="category"]');
+                mfbChips.forEach(chip => {
+                    chip.classList.toggle('active', chip.dataset.value === selectedCategory);
+                });
+
+                launchCatalog();
             }
         });
     }
