@@ -1447,14 +1447,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         zoomImg.src = data.image || '';
 
-        const isTire = data.category === 'Cauchos';
-        const hasImg = Boolean(data.image);
+        const hasImg = Boolean(data.image && !data.image.includes('placeholder'));
         if (zoomContainer) {
-            zoomContainer.dataset.zoomEnabled = (isTire && hasImg) ? 'true' : 'false';
-            zoomContainer.style.cursor = (isTire && hasImg) ? 'zoom-in' : 'default';
+            zoomContainer.dataset.zoomEnabled = hasImg ? 'true' : 'false';
+            zoomContainer.style.cursor = hasImg ? 'zoom-in' : 'default';
             const hint = zoomContainer.querySelector('.zoom-hint');
             if (hint) {
-                hint.style.display = (isTire && hasImg) ? 'block' : 'none';
+                hint.style.display = hasImg ? 'block' : 'none';
             }
         }
 
@@ -1508,8 +1507,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.key === 'Escape') closeZoomModal();
     });
 
+    // Lightbox references
+    const lightbox = document.getElementById('fullscreen-lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxClose = document.getElementById('lightbox-close');
+
+    function closeFullscreenLightbox() {
+        if (!lightbox) return;
+        lightbox.classList.add('hidden');
+        if (lightboxImg) lightboxImg.classList.remove('zoomed');
+        document.body.style.overflow = '';
+    }
+
+    if (lightbox && lightboxImg && lightboxClose) {
+        lightboxClose.addEventListener('click', closeFullscreenLightbox);
+
+        lightboxImg.addEventListener('click', (e) => {
+            e.stopPropagation();
+            lightboxImg.classList.toggle('zoomed');
+        });
+
+        lightbox.addEventListener('click', (e) => {
+            if (e.target !== lightboxImg) {
+                closeFullscreenLightbox();
+            }
+        });
+    }
+
     if (zoomContainer) {
         zoomContainer.addEventListener('mousemove', (e) => {
+            if (window.matchMedia('(hover: none)').matches) return;
             if (zoomContainer.dataset.zoomEnabled === 'false') return;
             const rect = zoomContainer.getBoundingClientRect();
             const x = ((e.clientX - rect.left) / rect.width) * 100;
@@ -1525,7 +1552,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         zoomContainer.addEventListener('click', () => {
             if (zoomContainer.dataset.zoomEnabled === 'false') return;
-            zoomContainer.classList.toggle('is-zoomed');
+            // Open the fullscreen lightbox
+            if (lightbox && lightboxImg) {
+                lightboxImg.src = zoomImg.src;
+                lightboxImg.classList.remove('zoomed');
+                lightbox.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
         });
     }
 
