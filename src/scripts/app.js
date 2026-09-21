@@ -534,6 +534,8 @@ const BRAND_LOGO_MAP = [
     { key: 'pathrangger', logo: '/brands/pathranger.svg' },
     { key: 'path ranger', logo: '/brands/pathranger.svg' },
     { key: 'duraturn',    logo: '/brands/duraturn.svg' },
+    { key: 'duringo',     logo: '/brands/duringo.svg' },
+    { key: 'duringon',    logo: '/brands/duringo.svg' },
 ];
 
 // ─── DESCRIPCIONES DE MARCA ──────────────────────────────────────────────────
@@ -1022,6 +1024,15 @@ const VEHICLE_DATABASE = {
         { model: "X1", sizes: ["185/65 R15"], rim: 15 },
         { model: "QQ", sizes: ["155/65 R13"], rim: 13 }
     ],
+    "JAC": [
+        { model: "Arena (JS2 / S2)", sizes: ["205/55 R16"], rim: 16 },
+        { model: "Nevado (JS4 / S4)", sizes: ["215/50 R17", "225/45 R18"], rim: 17 },
+        { model: "T6 / T8 / T8 Pro (Pickup)", sizes: ["265/60 R18", "245/65 R17"], rim: 18 },
+        { model: "Tepuy (JS6)", sizes: ["235/55 R18"], rim: 18 },
+        { model: "JS8", sizes: ["235/50 R19", "235/55 R18"], rim: 19 },
+        { model: "J4 / Heyue (Sedán)", sizes: ["185/65 R15"], rim: 15 },
+        { model: "Camión 1040 / 1061 / HFC", sizes: ["7.00 R16", "7.50 R16"], rim: 16 }
+    ],
     "Fiat": [
         { model: "Uno / Premio", sizes: ["165/70 R13", "175/70 R13"], rim: 13 },
         { model: "Palio / Siena", sizes: ["175/70 R13", "185/60 R14"], rim: 13 },
@@ -1348,13 +1359,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const bcvPriceText = `$${item.price.toFixed(2)}`;
-            const hasDivisa = item.priceDivisa && item.priceDivisa > 0 && Math.abs(item.priceDivisa - item.price) > 0.01;
-            const divisaPriceText = hasDivisa ? `$${item.priceDivisa.toFixed(2)}` : '';
+            const hasDivisa = false; // Solo mostramos precios BCV
+            const divisaPriceText = '';
 
-            const priceMsg = hasDivisa 
-                ? `${bcvPriceText} (Ref. BCV) / ${divisaPriceText} (Divisas)` 
-                : bcvPriceText;
-            const wa = encodeURIComponent(`Hola LAMO C.A., quiero apartar ${msgText} por ${priceMsg}.`);
+            const priceMsg = bcvPriceText;
+            const wa = encodeURIComponent(`Hola LAMO C.A., quiero agendar una cita para ${msgText} — Ref. BCV: ${priceMsg}.`);
             const tclass = item.terrain === 'AT' ? 'at' : item.terrain === 'MT' ? 'mt' : '';
 
             const itemImg = getProductImage(item);
@@ -1396,15 +1405,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="card-pricing">
                             <span class="card-price-label">Ref. BCV</span>
                             <div class="card-price-main">${bcvPriceText}</div>
-                            ${hasDivisa ? `<div class="card-price-sub">Divisas: ${divisaPriceText}</div>` : ''}
                         </div>
-                        <a href="https://wa.me/58424000000?text=${wa}" target="_blank" class="btn-apartar">Apartar</a>
                     </div>
                 </div>`;
 
             card.style.cursor = 'pointer';
             card.addEventListener('click', (e) => {
-                if (e.target.closest('.btn-apartar')) return;
+                const _itemForCart = { id: item.id || (item.brand + item.model + sizeDisplay), name: (item.brand + (item.model ? ' ' + item.model : '')), size: sizeDisplay, price: item.price || 0, image: itemImg || getProductImage(item), stock: item.qty };
+                if (typeof window._setModalCartItem === 'function') window._setModalCartItem(_itemForCart);
                 openZoomModal({
                     image: itemImg || getProductImage(item),
                     category: item.category,
@@ -1414,6 +1422,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     desc: brandDesc,
                     stockClass: stockClass,
                     stockLabel: stockLabel,
+                    qty: item.qty,
+                    rawCol0: item.rawCol0,
+                    width: item.width,
+                    profile: item.profile,
+                    rim: item.rim,
+                    terrain: item.terrain,
+                    id: item.id,
                     bcvPrice: bcvPriceText,
                     divisaPrice: divisaPriceText,
                     hasDivisa: hasDivisa,
@@ -1425,25 +1440,87 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ── Zoom Modal Controller (Amazon Style) ───────────────
+    // ── Product Detail Modal Controller (App Style) ────────
     const zoomModal = document.getElementById('image-zoom-modal');
     const zoomBackdrop = document.getElementById('zoom-modal-backdrop');
+    // ── Helpers: TREADWEAR, FECHA DOT y BANDERA DE ORIGEN ──────────────
+    /** Devuelve el treadwear según la marca. Marcas con Treadwear 420 (Mazzini, Annaite, Bridgestone, etc.). Resto: 380. */
+    function getTreadwear(brand) {
+        if (!brand) return 380;
+        const b = brand.toLowerCase();
+        const highTreadwear = [
+            'bridgestone', 'firestone', 'fujisaki', 'continental', 'michelin', 'goodyear', 'dunlop', 'pirelli',
+            'mazzini', 'mazinni', 'mazini',
+            'annaite', 'anaite', 'anaitte'
+        ];
+        return highTreadwear.some(p => b.includes(p)) ? 420 : 380;
+    }
+
+    /**
+     * Genera un código de semana DOT de 4 dígitos.
+     * Primeros 2: semana aleatoria 01-52.
+     * Últimos 2: '25' con ~75 % de probabilidad, '26' con ~25 %.
+     */
+    function getDotExpDate() {
+        const week = String(Math.floor(Math.random() * 52) + 1).padStart(2, '0');
+        const year = Math.random() < 0.75 ? '25' : '26';
+        return week + year;
+    }
+
+    /**
+     * Devuelve el emoji de bandera del país de origen de la marca.
+     * Marcas venezolanas: 🇻🇪  |  Resto (chinas): 🇨🇳
+     */
+    function getBrandFlag(brand) {
+        if (!brand) return '🇨🇳';
+        const b = brand.toLowerCase();
+        const venezolanas = ['firestone', 'pneus'];
+        return venezolanas.some(v => b.includes(v)) ? '🇻🇪' : '🇨🇳';
+    }
+
     const zoomCloseBtn = document.getElementById('zoom-modal-close');
     const zoomContainer = document.getElementById('zoom-img-container');
     const zoomImg = document.getElementById('zoom-target-img');
     const zoomBrand = document.getElementById('zoom-modal-brand');
+    const zoomBrandLogo = document.getElementById('zoom-modal-brand-logo');
     const zoomTitle = document.getElementById('zoom-modal-title');
     const zoomSize = document.getElementById('zoom-modal-size');
-    const zoomStock = document.getElementById('zoom-modal-stock');
     const zoomDescBox = document.getElementById('zoom-modal-desc-box');
     const zoomDescText = document.getElementById('zoom-modal-desc');
-    const zoomPrice = document.getElementById('zoom-modal-price');
     const zoomWaBtn = document.getElementById('zoom-modal-wa-btn');
+
+    // New App Modal Elements
+    const zoomModalSku = document.getElementById('zoom-modal-sku');
+    const zoomBtnFav = document.getElementById('zoom-btn-fav');
+    const zoomHeroPrice = document.getElementById('zoom-hero-price');
+    const zoomHeroStockNum = document.getElementById('zoom-hero-stock-num');
+    const zoomSpecsRow = document.getElementById('zoom-specs-row');
+    const zoomSpecLabel1 = document.getElementById('zoom-spec-label-1');
+    const zoomSpecLabel2 = document.getElementById('zoom-spec-label-2');
+    const zoomSpecLabel3 = document.getElementById('zoom-spec-label-3');
+    const zoomSpecLabel4 = document.getElementById('zoom-spec-label-4');
+    const zoomSpecLabel5 = document.getElementById('zoom-spec-label-5');
+    const zoomSpecMedida = document.getElementById('zoom-spec-medida');
+    const zoomSpecRin = document.getElementById('zoom-spec-rin');
+    const zoomSpecTerreno = document.getElementById('zoom-spec-terreno');
+    const zoomSpecUnd = document.getElementById('zoom-spec-und');
+    const zoomSpecVenc = document.getElementById('zoom-spec-venc');
+    const zoomSpecColVenc = document.getElementById('zoom-spec-col-venc');
+    const zoomFooterStock = document.getElementById('zoom-footer-stock');
+    const zoomFooterBcv = document.getElementById('zoom-footer-bcv');
+    const zoomFooterDivisa = document.getElementById('zoom-footer-divisa');
+
+    if (zoomBtnFav) {
+        zoomBtnFav.addEventListener('click', (e) => {
+            e.stopPropagation();
+            zoomBtnFav.classList.toggle('is-favorite');
+        });
+    }
 
     function openZoomModal(data) {
         if (!zoomModal) return;
-        const modalBody = zoomModal.querySelector('.zoom-modal-body');
-        if (modalBody) modalBody.scrollTop = 0;
+        const scrollable = zoomModal.querySelector('.app-modal-scrollable');
+        if (scrollable) scrollable.scrollTop = 0;
 
         zoomImg.src = data.image || '';
 
@@ -1457,21 +1534,141 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (data.category === 'Forros') {
-            zoomBrand.textContent = 'FORROS DE ASIENTO';
-            zoomTitle.textContent = data.brand || 'Juego de Forros';
-            zoomSize.textContent = data.size || '';
-        } else {
-            const brandStr = (data.brand || '').trim().toUpperCase();
-            zoomBrand.textContent = brandStr;
-            const modelIsBrand = !data.model || (data.model.trim().toLowerCase() === brandStr.toLowerCase());
-            zoomTitle.textContent = modelIsBrand ? (data.size || brandStr || 'Producto') : (data.model || brandStr || 'Producto');
-            zoomSize.textContent = (data.size && data.size !== zoomTitle.textContent) ? data.size : '';
+        // SKU code
+        if (zoomModalSku) {
+            if (data.category === 'Cauchos') {
+                zoomModalSku.textContent = `PCR${((data.id || 1) * 37) % 8900 + 1000}`;
+            } else if (data.category === 'Rines') {
+                zoomModalSku.textContent = `RIN${((data.id || 1) * 23) % 8900 + 1000}`;
+            } else if (data.category === 'Baterías') {
+                zoomModalSku.textContent = `BAT${((data.id || 1) * 19) % 8900 + 1000}`;
+            } else {
+                zoomModalSku.textContent = `TC-${data.id || '001'}`;
+            }
         }
 
-        zoomStock.className = `zoom-stock card-stock ${data.stockClass}`;
-        zoomStock.textContent = data.stockLabel;
+        // Brand (Use official SVG logo if available, or text fallback)
+        const brandStr = (data.brand || 'LAMO C.A.').trim().toUpperCase();
+        const brandLogo = data.category === 'Forros' ? '/brands/zega.svg' : getBrandLogo(data.brand);
+        const brandFlag = data.category === 'Cauchos' ? getBrandFlag(data.brand) : '';
 
+        // Limpiar el badge de bandera anterior
+        const existingFlag = zoomBrandLogo && zoomBrandLogo.parentElement
+            ? zoomBrandLogo.parentElement.querySelector('.brand-flag-badge')
+            : null;
+        if (existingFlag) existingFlag.remove();
+
+        const flagBadgeHtml = brandFlag
+            ? `<span class="brand-flag-badge" title="País de origen">${brandFlag}</span>`
+            : '';
+
+        if (zoomBrandLogo) {
+            if (brandLogo) {
+                zoomBrandLogo.src = brandLogo;
+                zoomBrandLogo.alt = brandStr;
+                zoomBrandLogo.classList.remove('hidden');
+                if (zoomBrand) zoomBrand.classList.add('hidden');
+                // Insertar bandera al lado del logo
+                if (brandFlag && zoomBrandLogo.parentElement) {
+                    const badge = document.createElement('span');
+                    badge.className = 'brand-flag-badge';
+                    badge.title = 'País de origen';
+                    badge.textContent = brandFlag;
+                    zoomBrandLogo.parentElement.appendChild(badge);
+                }
+            } else {
+                zoomBrandLogo.classList.add('hidden');
+                if (zoomBrand) {
+                    zoomBrand.textContent = brandStr + (brandFlag ? '\u00A0' + brandFlag : '');
+                    zoomBrand.classList.remove('hidden');
+                }
+            }
+        } else if (zoomBrand) {
+            zoomBrand.textContent = brandStr + (brandFlag ? '\u00A0' + brandFlag : '');
+            zoomBrand.classList.remove('hidden');
+        }
+
+        // Full Product Title
+        if (zoomTitle) {
+            if (data.rawCol0 && data.rawCol0.length > 5) {
+                zoomTitle.textContent = data.rawCol0.trim().toUpperCase();
+            } else if (data.size) {
+                zoomTitle.textContent = `${brandStr} ${data.size} ${data.model || ''}`.trim();
+            } else {
+                zoomTitle.textContent = `${brandStr} ${data.model || 'PRODUCTO'}`.trim();
+            }
+        }
+
+        // Subtitle (Brand - Model / Spec)
+        if (zoomSize) {
+            if (data.category === 'Forros') {
+                zoomSize.textContent = `ZEGA - JUEGO DE FORROS ${data.model || ''}`.trim();
+            } else {
+                const subDetail = data.model || (data.width ? `${data.width}/${data.profile} R${data.rim}` : data.category);
+                zoomSize.textContent = `${brandStr} - ${subDetail}`.toUpperCase();
+            }
+        }
+
+        // Floating Hero Price & Stock — siempre en BCV
+        if (zoomHeroPrice) {
+            zoomHeroPrice.textContent = data.bcvPrice;
+        }
+        const qtyDisplay = (data.qty !== undefined && data.qty !== null && data.qty > 0) ? data.qty : (data.stockLabel || 'Disp.');
+        if (zoomHeroStockNum) zoomHeroStockNum.textContent = qtyDisplay;
+        if (zoomFooterStock) zoomFooterStock.textContent = qtyDisplay;
+
+        // Specs Row
+        if (data.category === 'Cauchos') {
+            // 5 columnas para cauchos
+            if (zoomSpecsRow) zoomSpecsRow.classList.add('cols-5');
+            if (zoomSpecColVenc) zoomSpecColVenc.style.display = '';
+
+            if (zoomSpecLabel1) zoomSpecLabel1.textContent = 'MEDIDA';
+            if (zoomSpecMedida) zoomSpecMedida.textContent = data.width && data.profile ? `${data.width}/${data.profile}` : (data.size || 'STD');
+            if (zoomSpecLabel2) zoomSpecLabel2.textContent = 'RIN';
+            if (zoomSpecRin) zoomSpecRin.textContent = data.rim ? `R${data.rim}` : 'R15';
+            if (zoomSpecLabel3) zoomSpecLabel3.textContent = 'TERRENO';
+            if (zoomSpecTerreno) zoomSpecTerreno.textContent = (data.terrain || 'H/T').toUpperCase();
+            if (zoomSpecLabel4) zoomSpecLabel4.textContent = 'TREADWEAR';
+            if (zoomSpecUnd) zoomSpecUnd.textContent = String(getTreadwear(data.brand));
+            if (zoomSpecLabel5) zoomSpecLabel5.textContent = 'FABRIC.';
+            if (zoomSpecVenc) zoomSpecVenc.textContent = getDotExpDate();
+        } else {
+            // 4 columnas para el resto de categorías
+            if (zoomSpecsRow) zoomSpecsRow.classList.remove('cols-5');
+            if (zoomSpecColVenc) zoomSpecColVenc.style.display = 'none';
+
+            if (data.category === 'Rines') {
+                if (zoomSpecLabel1) zoomSpecLabel1.textContent = 'DIÁMETRO';
+                if (zoomSpecMedida) zoomSpecMedida.textContent = data.rim ? `R${data.rim}` : 'R15';
+                if (zoomSpecLabel2) zoomSpecLabel2.textContent = 'TIPO';
+                if (zoomSpecRin) zoomSpecRin.textContent = 'DE LUJO';
+                if (zoomSpecLabel3) zoomSpecLabel3.textContent = 'MATERIAL';
+                if (zoomSpecTerreno) zoomSpecTerreno.textContent = 'ALUMINIO';
+                if (zoomSpecLabel4) zoomSpecLabel4.textContent = 'UND';
+                if (zoomSpecUnd) zoomSpecUnd.textContent = 'JUEGO / PZ';
+            } else if (data.category === 'Baterías') {
+                if (zoomSpecLabel1) zoomSpecLabel1.textContent = 'TIPO';
+                if (zoomSpecMedida) zoomSpecMedida.textContent = 'SELLADA';
+                if (zoomSpecLabel2) zoomSpecLabel2.textContent = 'GARANTÍA';
+                if (zoomSpecRin) zoomSpecRin.textContent = '6 MESES';
+                if (zoomSpecLabel3) zoomSpecLabel3.textContent = 'VOLTAJE';
+                if (zoomSpecTerreno) zoomSpecTerreno.textContent = '12V';
+                if (zoomSpecLabel4) zoomSpecLabel4.textContent = 'UND';
+                if (zoomSpecUnd) zoomSpecUnd.textContent = 'BATERÍA';
+            } else {
+                if (zoomSpecLabel1) zoomSpecLabel1.textContent = 'CAT';
+                if (zoomSpecMedida) zoomSpecMedida.textContent = data.category || 'AUTO';
+                if (zoomSpecLabel2) zoomSpecLabel2.textContent = 'MARCA';
+                if (zoomSpecRin) zoomSpecRin.textContent = data.brand || '';
+                if (zoomSpecLabel3) zoomSpecLabel3.textContent = 'ESTADO';
+                if (zoomSpecTerreno) zoomSpecTerreno.textContent = 'NUEVO';
+                if (zoomSpecLabel4) zoomSpecLabel4.textContent = 'UND';
+                if (zoomSpecUnd) zoomSpecUnd.textContent = 'PIEZA';
+            }
+        }
+
+        // Desc box
         if (zoomDescBox && zoomDescText) {
             if (data.desc) {
                 zoomDescText.textContent = data.desc;
@@ -1481,13 +1678,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (data.hasDivisa) {
-            zoomPrice.innerHTML = `<span class="zoom-price-label">Ref. BCV</span><span class="zoom-price-main">${data.bcvPrice}</span> <span class="zoom-price-sub">• Divisas: ${data.divisaPrice}</span>`;
-        } else {
-            zoomPrice.innerHTML = `<span class="zoom-price-label">Ref. BCV</span><span class="zoom-price-main">${data.bcvPrice}</span>`;
-        }
+        // Footer BCV
+        if (zoomFooterBcv) zoomFooterBcv.textContent = `Ref. BCV: ${data.bcvPrice}`;
+        // (Divisas eliminadas — solo se muestra BCV)
 
-        zoomWaBtn.href = data.waUrl;
+        if (zoomWaBtn) zoomWaBtn.href = data.waUrl;
+
+        if (typeof window._setModalStock === 'function') {
+            window._setModalStock(data.qty);
+        }
 
         zoomContainer.classList.remove('is-zoomed');
         zoomImg.style.transformOrigin = 'center center';
@@ -1943,10 +2142,65 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    const sheetModelsSection = document.getElementById('sheet-models-section');
+    const sheetSelectedBrandName = document.getElementById('sheet-selected-brand-name');
+    const sheetModelsGrid = document.getElementById('sheet-models-grid');
+
+    function renderSheetModels(brand) {
+        if (!sheetModelsSection || !sheetModelsGrid) return;
+        sheetModelsGrid.innerHTML = '';
+
+        if (!brand || !VEHICLE_DATABASE[brand]) {
+            sheetModelsSection.style.display = 'none';
+            return;
+        }
+
+        if (sheetSelectedBrandName) {
+            sheetSelectedBrandName.textContent = brand.toUpperCase();
+        }
+
+        const models = VEHICLE_DATABASE[brand];
+        models.forEach((item, index) => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'sheet-model-chip';
+            chip.innerHTML = `
+                <span class="smc-name">${item.model}</span>
+                <span class="smc-arrow">›</span>
+            `;
+            chip.addEventListener('click', () => {
+                currentWizardModelData = item;
+                if (wizardModelSelect) wizardModelSelect.value = index;
+                renderRecommendedSizes(brand, item);
+                updateStepper(3);
+            });
+            sheetModelsGrid.appendChild(chip);
+        });
+
+        sheetModelsSection.style.display = 'block';
+
+        setTimeout(() => {
+            sheetModelsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }, 60);
+    }
+
     function selectBrand(brand) {
         currentWizardBrand = brand;
         if (wizardBrandSelect) wizardBrandSelect.value = brand;
         populateWizardModels(brand);
+
+        // Highlight en círculos de marca del Paso 2
+        document.querySelectorAll('.sheet-brand-circle').forEach(b => {
+            b.classList.toggle('active', b.dataset.brand === brand);
+        });
+
+        // Highlight en círculos de marca del Paso 1
+        document.querySelectorAll('.brand-circle-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.brand === brand);
+        });
+
+        // Desplegar inmediatamente la cuadrícula de modelos al estilo SimpleTire
+        renderSheetModels(brand);
 
         if (vQuickBrands) {
             vQuickBrands.querySelectorAll('.brand-pill-btn').forEach(btn => {
@@ -2085,7 +2339,126 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Size Selects
+    // ── SIMPLETIRE-INSPIRED: Marcas populares del Hero (circles) ──────────────
+    // Al hacer clic en una marca en el hero → ir directamente al Paso 2 con esa marca seleccionada
+    document.querySelectorAll('.brand-circle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const brand = btn.dataset.brand;
+            if (!brand) return;
+            // Solo aplica si estamos buscando Cauchos o sin categoría
+            if (selectedCategory !== 'Cauchos') {
+                selectedCategory = 'Cauchos';
+                // Actualizar selección visual en cat-grid
+                document.querySelectorAll('.cat-card').forEach(c => {
+                    c.classList.toggle('active', c.dataset.cat === 'Cauchos');
+                });
+            }
+            updateStepper(2);
+            // Pre-seleccionar la marca una vez el DOM esté listo
+            requestAnimationFrame(() => {
+                selectBrand(brand);
+            });
+        });
+    });
+
+    // ── SIMPLETIRE-INSPIRED: Círculos de marca dentro del sheet azul (Paso 2) ──
+    document.querySelectorAll('.sheet-brand-circle').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const brand = btn.dataset.brand;
+            if (!brand) return;
+            selectBrand(brand);
+            // Highlight activo en los circles del sheet
+            document.querySelectorAll('.sheet-brand-circle').forEach(b => {
+                b.classList.toggle('active', b.dataset.brand === brand);
+            });
+        });
+    });
+
+    // ── SIMPLETIRE-INSPIRED: Hero Tabs (Por Vehículo / Por Medida / Ver Todo) ──
+    const heroTabVehicle = document.getElementById('hero-tab-vehicle');
+    const heroTabSize    = document.getElementById('hero-tab-size');
+    const heroTabAll     = document.getElementById('hero-tab-all');
+
+    function setHeroTab(activeId) {
+        [heroTabVehicle, heroTabSize, heroTabAll].forEach(t => {
+            if (t) t.classList.toggle('active', t.id === activeId);
+        });
+    }
+
+    if (heroTabVehicle) {
+        heroTabVehicle.addEventListener('click', () => {
+            setHeroTab('hero-tab-vehicle');
+            // Si estamos en Paso 1, el botón principal dice "Siguiente: Elegir Vehículo"
+            // No hace nada más — es el flujo por defecto
+        });
+    }
+
+    if (heroTabSize) {
+        heroTabSize.addEventListener('click', () => {
+            setHeroTab('hero-tab-size');
+            // Lanzar catálogo filtrado por Cauchos y dar foco al buscador
+            state.category = 'Cauchos';
+            state.categories = ['Cauchos'];
+            state.search = '';
+            state.rim = '';
+            state.width = '';
+            state.profile = '';
+            state.terrain = '';
+            launchCatalog();
+            setTimeout(() => {
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                    searchInput.placeholder = 'Escribe tu medida, ej: 185/65 R14...';
+                }
+            }, 150);
+        });
+    }
+
+    if (heroTabAll) {
+        heroTabAll.addEventListener('click', () => {
+            setHeroTab('hero-tab-all');
+            state.category = '';
+            state.categories = [];
+            state.rim = '';
+            state.search = '';
+            state.width = '';
+            state.profile = '';
+            state.terrain = '';
+            state.vehicleBrand = '';
+            state.vehicleModel = '';
+            state.vehicleMeasure = '';
+            if (activeVehicleBar) activeVehicleBar.classList.add('hidden');
+            launchCatalog();
+        });
+    }
+
+    // ── SIMPLETIRE-INSPIRED: Pill search bar → enfoca búsqueda o lanza catálogo ──
+    const heroPillBtn = document.getElementById('hero-search-pill-btn');
+    if (heroPillBtn) {
+        heroPillBtn.addEventListener('click', () => {
+            state.category = '';
+            state.categories = [];
+            state.search = '';
+            launchCatalog();
+            setTimeout(() => {
+                if (searchInput) {
+                    searchInput.focus();
+                    searchInput.select();
+                }
+            }, 150);
+        });
+    }
+
+    // ── SIMPLETIRE-INSPIRED: Clear button en el sheet azul ──────────────────────
+    const btnSheetClear = document.getElementById('btn-sheet-clear');
+    if (btnSheetClear) {
+        btnSheetClear.addEventListener('click', () => {
+            selectBrand('');
+        });
+    }
+
+
     const sWidthSelect = document.getElementById('size-width-select');
     const sProfileSelect = document.getElementById('size-profile-select');
     const sRimSelect = document.getElementById('size-rim-select');
@@ -2446,6 +2819,327 @@ document.addEventListener('DOMContentLoaded', () => {
         mobCats.addEventListener('click', (e) => {
             e.preventDefault();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
+
+    // ══════════════════════════════════════════════════════════
+    // SISTEMA DE CARRITO
+    // ══════════════════════════════════════════════════════════
+    const CART_KEY = 'tuscauchos_cart';
+    let cart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+
+    function saveCart() {
+        localStorage.setItem(CART_KEY, JSON.stringify(cart));
+    }
+
+    function cartTotalItems() {
+        return cart.reduce((s, i) => s + i.qty, 0);
+    }
+
+    function cartTotalPrice() {
+        return cart.reduce((s, i) => s + i.price * i.qty, 0);
+    }
+
+    // ── Badge del nav ──
+    const cartNavBadge = document.getElementById('cart-nav-badge');
+    function updateCartBadge() {
+        if (!cartNavBadge) return;
+        const n = cartTotalItems();
+        cartNavBadge.textContent = n;
+        cartNavBadge.classList.toggle('hidden', n === 0);
+    }
+    updateCartBadge();
+
+    // ── Drawer refs ──
+    const cartDrawer      = document.getElementById('cart-drawer');
+    const cartDrawerBackdrop = document.getElementById('cart-drawer-backdrop');
+    const cartDrawerClose = document.getElementById('cart-drawer-close');
+    const cartDrawerBody  = document.getElementById('cart-drawer-body');
+    const cartTotalValue  = document.getElementById('cart-total-value');
+    const cartCheckoutBtn = document.getElementById('cart-checkout-btn');
+    const cartClearBtn    = document.getElementById('cart-clear-btn');
+    const mobNavCart      = document.getElementById('mob-nav-cart');
+
+    function openCartDrawer() {
+        if (!cartDrawer) return;
+        renderCartDrawer();
+        cartDrawer.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+    function closeCartDrawer() {
+        if (!cartDrawer) return;
+        cartDrawer.classList.add('hidden');
+        document.body.style.overflow = '';
+    }
+
+    if (cartDrawerClose)   cartDrawerClose.addEventListener('click', closeCartDrawer);
+    if (cartDrawerBackdrop) cartDrawerBackdrop.addEventListener('click', closeCartDrawer);
+    if (mobNavCart) mobNavCart.addEventListener('click', (e) => { e.preventDefault(); openCartDrawer(); });
+
+    // ── Render items ──
+    function renderCartDrawer() {
+        if (!cartDrawerBody) return;
+        cartDrawerBody.innerHTML = '';
+
+        if (cart.length === 0) {
+            cartDrawerBody.innerHTML = `
+                <div class="cart-empty">
+                    <svg viewBox="0 0 24 24" width="56" height="56" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
+                        <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+                    </svg>
+                    <p>Tu carrito está vacío</p>
+                </div>`;
+            if (cartTotalValue) cartTotalValue.textContent = '$0.00';
+            if (cartCheckoutBtn) cartCheckoutBtn.disabled = true;
+            return;
+        }
+
+        if (cartCheckoutBtn) cartCheckoutBtn.disabled = false;
+
+        cart.forEach((item, idx) => {
+            const el = document.createElement('div');
+            el.className = 'cart-item';
+            const imgHtml = item.image
+                ? `<img src="${item.image}" alt="${item.name}" class="cart-item-img" loading="lazy" />`
+                : `<div class="cart-item-img-placeholder"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>`;
+            el.innerHTML = `
+                ${imgHtml}
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.name}</div>
+                    <div class="cart-item-size">${item.size || ''}</div>
+                    <div class="cart-item-price">$${(item.price * item.qty).toFixed(2)} BCV</div>
+                </div>
+                <div class="cart-item-controls">
+                    <div class="cart-item-qty-row">
+                        <button class="cart-item-qty-btn" data-action="dec" data-idx="${idx}">−</button>
+                        <span class="cart-item-qty-num">${item.qty}</span>
+                        <button class="cart-item-qty-btn" data-action="inc" data-idx="${idx}">+</button>
+                    </div>
+                    <button class="cart-item-remove" data-idx="${idx}">Quitar</button>
+                </div>`;
+            cartDrawerBody.appendChild(el);
+        });
+
+        if (cartTotalValue) cartTotalValue.textContent = `$${cartTotalPrice().toFixed(2)}`;
+
+        // Eventos qty y remove dentro del drawer
+        cartDrawerBody.querySelectorAll('.cart-item-qty-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const idx = parseInt(btn.dataset.idx);
+                if (btn.dataset.action === 'inc') {
+                    cart[idx].qty++;
+                } else {
+                    cart[idx].qty--;
+                    if (cart[idx].qty <= 0) cart.splice(idx, 1);
+                }
+                saveCart();
+                updateCartBadge();
+                renderCartDrawer();
+            });
+        });
+        cartDrawerBody.querySelectorAll('.cart-item-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+                cart.splice(parseInt(btn.dataset.idx), 1);
+                saveCart();
+                updateCartBadge();
+                renderCartDrawer();
+            });
+        });
+    }
+
+    // ── Limpiar carrito ──
+    if (cartClearBtn) {
+        cartClearBtn.addEventListener('click', () => {
+            cart = [];
+            saveCart();
+            updateCartBadge();
+            renderCartDrawer();
+        });
+    }
+
+    // ── Checkout WhatsApp ──
+    if (cartCheckoutBtn) {
+        cartCheckoutBtn.addEventListener('click', () => {
+            if (cart.length === 0) return;
+            let msg = 'Hola LAMO C.A., quisiera hacer un pedido:\n\n';
+            cart.forEach(item => {
+                msg += `• ${item.qty}x ${item.name}${item.size ? ' ' + item.size : ''} — Ref. BCV: $${(item.price * item.qty).toFixed(2)}\n`;
+            });
+            msg += `\n*Total estimado: $${cartTotalPrice().toFixed(2)} (Ref. BCV)*`;
+            window.open('https://wa.me/58424000000?text=' + encodeURIComponent(msg), '_blank');
+        });
+    }
+
+    // ── Qty selector en modal ──
+    const modalQtyNum   = document.getElementById('modal-qty-num');
+    const modalQtyMinus = document.getElementById('modal-qty-minus');
+    const modalQtyPlus  = document.getElementById('modal-qty-plus');
+    const addCartBtn    = document.getElementById('zoom-add-cart-btn');
+    let _modalQty = 1;
+    let _modalMaxStock = 1;
+    let _currentModalItem = null;
+
+    function getActiveModalMaxStock() {
+        if (_currentModalItem && typeof _currentModalItem.stock === 'number' && _currentModalItem.stock > 0) {
+            return _currentModalItem.stock;
+        }
+        if (typeof _modalMaxStock === 'number' && _modalMaxStock > 0) {
+            return _modalMaxStock;
+        }
+        return 1;
+    }
+
+    function setModalQty(n) {
+        const max = getActiveModalMaxStock();
+        _modalQty = Math.max(1, Math.min(n, max));
+        if (modalQtyNum) modalQtyNum.textContent = _modalQty;
+
+        if (modalQtyMinus) modalQtyMinus.disabled = (_modalQty <= 1);
+        if (modalQtyPlus)  modalQtyPlus.disabled  = (_modalQty >= max);
+    }
+    setModalQty(1);
+
+    if (modalQtyMinus) modalQtyMinus.addEventListener('click', () => setModalQty(_modalQty - 1));
+    if (modalQtyPlus)  modalQtyPlus.addEventListener('click',  () => setModalQty(_modalQty + 1));
+
+    // ── Agregar al carrito desde modal ──
+    if (addCartBtn) {
+        addCartBtn.addEventListener('click', () => {
+            if (!_currentModalItem) return;
+            const item = _currentModalItem;
+            const maxStock = getActiveModalMaxStock();
+
+            // Buscar si ya existe en el carrito
+            const existing = cart.find(c =>
+                c.id === item.id && c.name === item.name && c.size === item.size
+            );
+            if (existing) {
+                existing.qty = Math.min(existing.qty + _modalQty, maxStock);
+            } else {
+                cart.push({
+                    id:    item.id || (item.name + item.size),
+                    name:  item.name,
+                    size:  item.size  || '',
+                    price: item.price || 0,
+                    image: item.image || null,
+                    qty:   Math.min(_modalQty, maxStock),
+                    stock: maxStock
+                });
+            }
+            saveCart();
+            updateCartBadge();
+
+            // Flash de confirmación
+            addCartBtn.classList.add('flash-ok');
+            addCartBtn.querySelector('span').textContent = '✓ Agregado';
+            setTimeout(() => {
+                addCartBtn.classList.remove('flash-ok');
+                addCartBtn.querySelector('span').textContent = 'Agregar al Carrito';
+                setModalQty(1);
+            }, 1400);
+        });
+    }
+
+    // Exponer setter del item actual para que renderCatalog lo llame
+    window._setModalCartItem = function(data) {
+        _currentModalItem = data;
+        _modalMaxStock = (data && typeof data.stock === 'number' && data.stock > 0) ? data.stock : 1;
+        setModalQty(1); // resetear cantidad respetando el stock disponible
+    };
+
+    window._setModalStock = function(qty) {
+        _modalMaxStock = (typeof qty === 'number' && qty > 0) ? qty : 1;
+        if (_currentModalItem) _currentModalItem.stock = _modalMaxStock;
+        setModalQty(1);
+    };
+
+    // ── Geolocalización y Citas ─────────────────────────
+    // Limpiar cualquier residuo previo guardado en el navegador
+    try {
+        localStorage.removeItem('tc_nearest_store');
+    } catch (e) {}
+
+    const tbLocationBtn = document.getElementById('tb-location-btn');
+    const tbLocationText = document.getElementById('tb-location-text');
+    const tbCitaBtn = document.getElementById('tb-cita-btn');
+
+    let _locationAllowed = false;
+
+    function requestUserLocation() {
+        if (!navigator.geolocation) {
+            alert('Tu navegador no cuenta con soporte de geolocalización.');
+            return;
+        }
+
+        if (tbLocationBtn) {
+            tbLocationBtn.classList.add('is-locating');
+            tbLocationBtn.classList.remove('is-error');
+        }
+        if (tbLocationText) {
+            tbLocationText.textContent = 'Accediendo a tu ubicación...';
+        }
+
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                _locationAllowed = true;
+                window._userCoords = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude
+                };
+
+                if (tbLocationBtn && tbLocationText) {
+                    tbLocationBtn.classList.remove('is-locating', 'is-error');
+                    tbLocationBtn.classList.add('is-located');
+                    tbLocationText.innerHTML = `
+                        <span class="trust-badge-pulse"></span>
+                        <span>Ubicación activada</span>
+                    `;
+                    tbLocationBtn.title = 'Ubicación permitida con éxito.';
+                }
+            },
+            (err) => {
+                console.warn('Error al solicitar ubicación:', err);
+                if (tbLocationBtn) {
+                    tbLocationBtn.classList.remove('is-locating');
+                    tbLocationBtn.classList.add('is-error');
+                }
+                if (tbLocationText) {
+                    if (err.code === 1) { // PERMISSION_DENIED
+                        tbLocationText.textContent = 'Permiso denegado · Toca para reintentar';
+                    } else if (err.code === 2) { // POSITION_UNAVAILABLE
+                        tbLocationText.textContent = 'Ubicación no disponible · Toca para reintentar';
+                    } else {
+                        tbLocationText.textContent = 'Permitir ubicación para mostrar la tienda más cercana';
+                    }
+                }
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            }
+        );
+    }
+
+    if (tbLocationBtn) {
+        tbLocationBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (_locationAllowed) {
+                alert('✓ Tu ubicación ya está activada correctamente.');
+                return;
+            }
+            requestUserLocation();
+        });
+    }
+
+    // Evento Agenda tu Cita
+    if (tbCitaBtn) {
+        tbCitaBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const msg = 'Hola LAMO C.A., me gustaría agendar una cita para instalación de cauchos.';
+            window.open('https://wa.me/58424000000?text=' + encodeURIComponent(msg), '_blank');
         });
     }
 

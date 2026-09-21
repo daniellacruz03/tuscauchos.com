@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50" width="100" height="50" fill="none">
+  <!-- FIAT Badge Logo -->
+  <g fill="#FFFFFF">
+    <!-- F -->
+    <path d="M12 12 H28 V18 H18 V23 H26 V29 H18 V38 H12 Z"/>
+    <!-- I -->
+    <path d="M36 12 H42 V38 H36 Z"/>
+    <!-- A -->
+    <path d="M50 38 L58 12 H64 L72 38 H66 L64.5 32 H57.5 L56 38 H50 Z M59 27 H63 L61 19 Z"/>
+    <!-- T -->
+    <path d="M76 12 H94 V18 H88 V38 H82 V18 H76 Z"/>
+  </g>
+</svg>

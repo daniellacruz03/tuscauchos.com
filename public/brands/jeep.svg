@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 50" width="120" height="50" fill="none">
+  <!-- Jeep Wordmark Logo -->
+  <g fill="#FFFFFF">
+    <!-- J -->
+    <path d="M12 12 H26 V31 C26 36 22 39 16 39 C10 39 6 36 6 32 H14 C14 33.5 15 34 16 34 C17.5 34 18.5 33 18.5 31 V12 Z"/>
+    <!-- E 1 -->
+    <path d="M32 12 H52 V19 H40 V22 H50 V28 H40 V31 H52 V38 H32 Z"/>
+    <!-- E 2 -->
+    <path d="M58 12 H78 V19 H66 V22 H76 V28 H66 V31 H78 V38 H58 Z"/>
+    <!-- P -->
+    <path d="M84 12 H104 C111 12 115 15.5 115 21 C115 26.5 111 30 104 30 H92 V38 H84 Z M92 18 V24 H102 C105 24 107 23 107 21 C107 19 105 18 102 18 Z"/>
+  </g>
+</svg>
